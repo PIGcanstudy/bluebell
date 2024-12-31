@@ -11,6 +11,7 @@ const (
 	PasswordError    MyCode = 1005
 	UserNotExist     MyCode = 1006
 	LoginFaild       MyCode = 1007
+	InvalidToken     MyCode = 1008
 )
 
 var msgFlags = map[MyCode]string{
@@ -22,6 +23,7 @@ var msgFlags = map[MyCode]string{
 	PasswordError:    "密码错误",
 	UserNotExist:     "用户不存在",
 	LoginFaild:       "用户名或密码错误",
+	InvalidToken:     "无效的token",
 }
 
 func (c MyCode) Msg() string {

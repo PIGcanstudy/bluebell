@@ -2,6 +2,7 @@ package main
 
 import (
 	"bluebell/dao/mysql"
+	"bluebell/dao/redis"
 	"bluebell/routers"
 	"fmt"
 
@@ -20,6 +21,14 @@ func main() {
 	// 初始化mysql
 	if err = mysql.Init(cfg); err != nil {
 		fmt.Printf("init mysql failed, err:%v\n", err)
+		return
+	}
+
+	redis.Init()
+
+	if redis.RedisPool == nil {
+		fmt.Println("init redis failed")
+		return
 	}
 
 	r := gin.Default()

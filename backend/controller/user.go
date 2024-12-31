@@ -4,7 +4,6 @@ import (
 	"bluebell/logic"
 	"bluebell/models"
 	"fmt"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 
@@ -19,43 +18,26 @@ func SignupHandler(c *gin.Context) {
 	if err := c.ShouldBindJSON(&data); err != nil {
 		zap.L().Error("注册时参数错误", zap.Error(err))
 		code := InvalidParams
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	// 验证确认密码和密码是否一致
 	if data.Password != data.Confirm {
 		code := PasswordNotMatch
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	//  开始处理业务注册逻辑
 	if isSuccess := logic.Signup(data); !isSuccess {
 		code := UserExist
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	// 已经注册完毕了
-	code := ResponseSuccess
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  code.Msg(),
-		"Data": "注册成功",
-	})
+	ResponseSuccessed(c, "注册成功")
 }
 
 func SigninHandler(c *gin.Context) {
@@ -68,44 +50,32 @@ func SigninHandler(c *gin.Context) {
 	}
 
 	// 返回-1表示数据库查询出错, -2表示用户不存在，返回0表示查询结果不一致。返回1表示一致
-	isSuccess := logic.Signin(data)
+	user, isSuccess := logic.Signin(data)
 
 	if isSuccess == -2 {
 		code := UserNotExist
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	if isSuccess == -1 {
 		code := CodeServerBusy
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	if isSuccess == 0 {
 		code := LoginFaild
-		c.JSON(http.StatusOK, gin.H{
-			"code": code,
-			"msg":  code.Msg(),
-			"Data": nil,
-		})
+		ResponseError(c, code)
 		return
 	}
 
 	// 登录成功
-	code := ResponseSuccess
-	c.JSON(http.StatusOK, gin.H{
-		"code": code,
-		"msg":  code.Msg(),
-		"Data": "登录成功",
+	ResponseSuccessed(c, gin.H{
+		"user_id":       user.User_id,
+		"user_name":     user.Username,
+		"access_token":  user.AccessToken,
+		"refresh_token": user.RefreshToken,
 	})
 
 }

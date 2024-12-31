@@ -3,6 +3,7 @@ package logic
 import (
 	"bluebell/dao/mysql"
 	"bluebell/models"
+	"bluebell/pkg/jwt"
 	"bluebell/pkg/snowflake"
 	"fmt"
 )
@@ -44,9 +45,9 @@ func InsertUser(user models.User) error {
 	return nil
 }
 
-func Signin(data models.LoginForm) int {
+func Signin(data models.LoginForm) (user models.User, isSuccess int) {
 	// 查询数据库中的用户数据
-	isSuccess := mysql.CheckPassword(data)
+	isSuccess = mysql.CheckPassword(data, &user)
 	if isSuccess != 1 {
 		if isSuccess == 0 {
 			fmt.Println("用户名或密码错误")
@@ -55,11 +56,25 @@ func Signin(data models.LoginForm) int {
 		} else {
 			fmt.Println("用户不存在")
 		}
-		return isSuccess
+		return
 	}
+
+	// 生成JWTTOKEN
+
+	atoken, rotken, err := jwt.GenToken(uint64(user.User_id), user.Username)
+
+	if err != nil {
+		fmt.Println("生成JWTTOKEN失败， 原因为：", err)
+		return
+	}
+
+	user.AccessToken = atoken
+	user.RefreshToken = rotken
+
+	// 保存JWTTOKEN到redis中
 
 	// 等于1表示密码与用户匹配
 	fmt.Println("登录成功")
 
-	return isSuccess
+	return
 }

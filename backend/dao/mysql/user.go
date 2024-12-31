@@ -23,20 +23,20 @@ func CheckUserExist(username string) bool {
 }
 
 // 返回-1表示数据库查询出错, -2表示用户不存在，返回0表示查询结果不一致。返回1表示一致
-func CheckPassword(data models.LoginForm) int {
-	var password string
-	re := DB.Table("user").Select("password").Where("username =?", data.Username).Find(&password)
+func CheckPassword(data models.LoginForm, user *models.User) int {
+
+	re := DB.Table("user").Where("username =?", data.Username).Find(&user)
 	if re.Error != nil {
 		fmt.Println(re.Error)
 		return -1
 	}
 	var pwd string = EncryptPassword(data.Password)
 
-	if password != pwd && password != "" {
+	if user.Password != pwd && user.Password != "" {
 		return 0
 	}
 
-	if password == "" {
+	if user.Password == "" {
 		return -2
 	}
 
