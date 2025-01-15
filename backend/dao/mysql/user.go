@@ -42,3 +42,14 @@ func CheckPassword(data models.LoginForm, user *models.User) int {
 
 	return 1
 }
+
+// 根据id查找用户信息
+func GetUserByID(id uint64) (user models.SimpleUser, err error) {
+	rt := DB.Table("user").Select("id, user_id, username").Where("user_id = ?", id).Scan(&user)
+	err = rt.Error
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	return
+}

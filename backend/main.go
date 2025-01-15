@@ -3,6 +3,7 @@ package main
 import (
 	"bluebell/dao/mysql"
 	"bluebell/dao/redis"
+	"bluebell/logic"
 	"bluebell/routers"
 	"fmt"
 
@@ -33,7 +34,9 @@ func main() {
 
 	r := gin.Default()
 
-	routers.InitRouters(r)
+	routers.InitRouters(r, cfg)
+
+	go logic.TimingtoStoreVotes()
 
 	r.Run()
 }

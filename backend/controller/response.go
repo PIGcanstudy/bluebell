@@ -7,7 +7,7 @@ import (
 type ResponseData struct {
 	Code MyCode      `json:"code"`
 	Msg  string      `json:"msg"`
-	Data interface{} `json:"data, omitempty"` // 当此字段为空不显示
+	Data interface{} `json:"data,omitempty"` // 当此字段为空不显示
 }
 
 func ResponseError(ctx *gin.Context, c MyCode) {

@@ -5,6 +5,11 @@ import (
 	"errors"
 )
 
+type SimpleUser struct {
+	User_Id  int64  `json:"user_id"`
+	Username string `json:"username"`
+}
+
 type User struct {
 	Id           int    `json:"id"`
 	User_id      int64  `json:"user_id"`

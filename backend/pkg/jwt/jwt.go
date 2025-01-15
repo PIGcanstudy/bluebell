@@ -2,10 +2,11 @@ package jwt
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/spf13/viper"
+	"gopkg.in/ini.v1"
 )
 
 // MyClaims 自定义声明结构体并内嵌jwt.StandardClaims
@@ -30,13 +31,15 @@ const TokenExpireDuration = time.Hour * 2
 
 // 生成AccessToken和RefreshToken
 func GenToken(userId uint64, username string) (aToken, rToken string, err error) {
+	cfg, _ := ini.Load("./conf/config.ini")
+	duration, _ := cfg.Section("auth").Key("jwt_expire").Int()
 	// 创建一个自己的声明
 	c := MyClaims{
 		userId,     // 自定义字段
 		"username", // 自定义字段
 		jwt.StandardClaims{ // JWT规定的7个官方字段
 			ExpiresAt: time.Now().Add(
-				time.Duration(viper.GetInt("auth.jwt_expire")) * time.Hour).Unix(), // 过期时间
+				time.Duration(duration) * time.Hour).Unix(), // 过期时间
 			Issuer: "bluebell", // 签发人
 		},
 	}
@@ -79,10 +82,12 @@ func ParseToken(tokenString string) (claims *MyClaims, err error) {
 	var token *jwt.Token
 	claims = new(MyClaims)
 	token, err = jwt.ParseWithClaims(tokenString, claims, keyFunc)
+	fmt.Printf("Parsed ExpiresAt: %v\n", time.Unix(claims.ExpiresAt, 0))
 	if err != nil {
 		return
 	}
 	if !token.Valid { // 校验token是否有效
+
 		err = errors.New("invalid token")
 	}
 	return

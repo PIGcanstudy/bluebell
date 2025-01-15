@@ -12,6 +12,8 @@ const (
 	UserNotExist     MyCode = 1006
 	LoginFaild       MyCode = 1007
 	InvalidToken     MyCode = 1008
+	NotLogin         MyCode = 1009
+	VoteRepated      MyCode = 1010
 )
 
 var msgFlags = map[MyCode]string{
@@ -24,6 +26,8 @@ var msgFlags = map[MyCode]string{
 	UserNotExist:     "用户不存在",
 	LoginFaild:       "用户名或密码错误",
 	InvalidToken:     "无效的token",
+	NotLogin:         "未登录",
+	VoteRepated:      "重复投相同的票",
 }
 
 func (c MyCode) Msg() string {
