@@ -31,6 +31,7 @@ func (v *VoteDataForm) UnmarshalJSON(data []byte) (err error) {
 }
 
 type VoteDataScore struct {
-	PostId uint64 `json:"post_id"`
-	Score  int64  `json:"score"`
+	UserId   uint64 `json:"user_id"`
+	PostId   uint64 `json:"post_id"`
+	VoteType string `json:"vote_type"`
 }

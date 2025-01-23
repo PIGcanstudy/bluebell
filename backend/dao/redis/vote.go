@@ -50,7 +50,7 @@ func VoteForPost(userId uint64, post *models.VoteDataForm) error {
 	fmt.Println("ov:", ov)
 	fmt.Println("v:", v)
 
-	if v == ov {
+	if v == ov && ov != 0 {
 		// 已经投过票了，不能重复投票
 		fmt.Println("已经投过票了，不能重复投票")
 		return errors.New("已经投过票了，不能重复投票")
@@ -78,7 +78,7 @@ func VoteForPost(userId uint64, post *models.VoteDataForm) error {
 		// 修改
 		if ov == 432 { // 原本投赞成票
 			client.Send("HINCRBY", KeyPostInfoHashPrefix+strconv.Itoa(int(postId)), "likes", -1)
-		} else { // 原本投反对票
+		} else if ov == -432 { // 原本投反对票
 			client.Send("HINCRBY", KeyPostInfoHashPrefix+strconv.Itoa(int(postId)), "unlikes", -1)
 		}
 	} else {

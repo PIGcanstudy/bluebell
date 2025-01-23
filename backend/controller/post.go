@@ -79,6 +79,76 @@ func CreatePostHandler(c *gin.Context) {
 	ResponseSuccessed(c, post)
 }
 
+// 更新帖子
+func UpdatePostHandler(c *gin.Context) {
+	// 从post路径参数中获取帖子ID
+	postId, err := strconv.ParseUint(c.PostForm("post_id"), 10, 64)
+	if err != nil {
+		fmt.Println("update post failed, invalid params", err.Error())
+		ResponseErrorWithMsg(c, InvalidParams, err.Error())
+		return
+	}
+
+	// 从请求中获取帖子内容
+	content := c.PostForm("content")
+
+	// 获取title以及community_id
+	title := c.PostForm("title")
+
+	communityId, err := strconv.ParseInt(c.PostForm("community_id"), 10, 64)
+	// 获取原来的community_id
+	oldCommunityId, err := strconv.ParseUint(c.PostForm("old_community_id"), 10, 64)
+
+	if err != nil {
+		fmt.Println("update post failed, invalid params", err.Error())
+		ResponseErrorWithMsg(c, InvalidParams, err.Error())
+		return
+	}
+
+	post := models.PostContent{
+		Content:      content,
+		Title:        title,
+		Community_id: communityId,
+	}
+
+	// 更新帖子内容（redis和mysql）
+	if err = logic.UpdatePost(postId, post, oldCommunityId); err != nil {
+		fmt.Println("update post failed, server busy", err.Error())
+		ResponseError(c, CodeServerBusy)
+		return
+	}
+	// 成功就返回响应
+	ResponseSuccessed(c, "更新成功")
+}
+
+// 删除帖子
+func DeletePostHandler(c *gin.Context) {
+	// 从post路径参数中获取帖子ID
+	postId, err := strconv.ParseUint(c.PostForm("post_id"), 10, 64)
+
+	if err != nil {
+		ResponseErrorWithMsg(c, InvalidParams, "invalid post_id")
+		return
+	}
+
+	// 获取当前用户ID
+	userId, err := getCurrentUserId(c)
+
+	if err != nil {
+		ResponseError(c, CodeServerBusy)
+		return
+	}
+
+	// 调用逻辑层的删除帖子逻辑
+	if err = logic.DeletePost(postId, userId); err != nil {
+		ResponseErrorWithMsg(c, DeletePostFaild, DeletePostFaild.Msg())
+		return
+	}
+
+	// 成功就返回响应
+	ResponseSuccessed(c, "删除成功")
+}
+
 func GetPostListSortedHandler(c *gin.Context) {
 	// 获取分页查询参数
 	p := &models.ParamPostList{

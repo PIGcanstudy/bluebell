@@ -63,13 +63,24 @@ func InitRouters(r *gin.Engine, cfg *ini.File) {
 	{
 		// 创建帖子
 		v.POST("/post", controller.CreatePostHandler)
+		// 更新帖子
+		v.POST("/UpdatePost", controller.UpdatePostHandler)
+		// 删除帖子
+		v.POST("/DeletePost", controller.DeletePostHandler)
 
 		// 投票
 		v.POST("/vote", controller.VoteHandler)
 
 		// 评论
 		v.POST("/comment", controller.CommentHandler)
+
+		// 退出登录
+		v.POST("/signout", controller.SignoutHandler)
+
 		v.GET("/comment", controller.CommentListHandler)
+
+		// 用户之间的私聊
+		v.GET("/chat", controller.ChatHandler)
 
 		v.GET("/ping", func(c *gin.Context) {
 			c.String(200, "pong")

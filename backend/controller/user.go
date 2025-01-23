@@ -82,10 +82,28 @@ func SigninHandler(c *gin.Context) {
 	})
 }
 
+func SignoutHandler(c *gin.Context) {
+	// 从header中获取id
+	user_id, err := getCurrentUserId(c)
+	if err != nil {
+		ResponseErrorWithMsg(c, NotLogin, "用户未登录")
+	}
+
+	// 调用逻辑层的方法
+	if err := logic.SignOut(user_id); err != nil {
+		ResponseErrorWithMsg(c, CodeServerBusy, "服务器繁忙")
+	}
+
+	// 返回成功
+	ResponseSuccessed(c, "登出成功")
+}
+
 // 对外提供RefreshToken的接口
 func RefreshTokenHandler(c *gin.Context) {
 	// 获取前端传来的RefreshToken
 	rt := c.Query("refresh_token")
+
+	user_id, err := getCurrentUserId(c)
 
 	// 验证RefreshToken是否合法
 	authHeader := c.Request.Header.Get("Authorization")
@@ -106,6 +124,12 @@ func RefreshTokenHandler(c *gin.Context) {
 	}
 
 	aToken, rToken, err := jwt.RefreshToken(parts[1], rt)
+
+	if err = logic.UpdateToken(user_id, aToken, rToken); err != nil {
+		ResponseErrorWithMsg(c, CodeServerBusy, "服务器繁忙")
+		c.Abort()
+		return
+	}
 	fmt.Println(err)
 	c.JSON(http.StatusOK, gin.H{
 		"access_token":  aToken,

@@ -32,11 +32,17 @@ func main() {
 		return
 	}
 
+	rc := redis.RedisClient{
+		PostService: mysql.NewPostService(),
+	}
+
 	r := gin.Default()
 
 	routers.InitRouters(r, cfg)
 
 	go logic.TimingtoStoreVotes()
+
+	go rc.ListenForKeyspaceNotifications()
 
 	r.Run()
 }

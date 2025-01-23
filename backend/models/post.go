@@ -72,3 +72,9 @@ type PostVoteDetail struct {
 	Likes   int64  `json:"like"`
 	Unlikes int64  `json:"unlike"`
 }
+
+type PostContent struct {
+	Content      string `json:"content" db:"content" redis:"summary"`
+	Title        string `json:"title" db:"title" redis:"title"`
+	Community_id int64  `json:"community_id" db:"community_id" redis:"community_id"`
+}

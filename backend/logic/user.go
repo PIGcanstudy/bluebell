@@ -2,6 +2,7 @@ package logic
 
 import (
 	"bluebell/dao/mysql"
+	"bluebell/dao/redis"
 	"bluebell/models"
 	"bluebell/pkg/jwt"
 	"bluebell/pkg/snowflake"
@@ -12,6 +13,8 @@ func Signup(data models.RegisterForm) bool {
 	// 首先查看用户是否已存在
 	isExist := mysql.CheckUserExist(data.Username)
 
+	fmt.Println(isExist)
+
 	if isExist {
 		return false
 	}
@@ -21,7 +24,7 @@ func Signup(data models.RegisterForm) bool {
 	userId := snowflake.GetID()
 
 	var user models.User
-	user.User_id = userId
+	user.User_id = uint64(userId)
 	user.Username = data.Username
 	user.Password = data.Password
 
@@ -38,7 +41,7 @@ func InsertUser(user models.User) error {
 	fmt.Println(user)
 	// 插入数据库中
 	result := mysql.DB.Create(&user)
-	fmt.Println(result)
+
 	if result.Error != nil {
 		return result.Error
 	}
@@ -71,10 +74,36 @@ func Signin(data models.LoginForm) (user models.User, isSuccess int) {
 	user.AccessToken = atoken
 	user.RefreshToken = rotken
 
-	// 保存JWTTOKEN到redis中
+	// 保存JWTToken存到redis中（这样是否违背了jwt的设计理念）
+	if err := redis.StoreJWTToken(user.User_id, atoken, rotken); err != nil {
+		fmt.Println("保存JWTToken到redis失败， 原因为：", err)
+		return
+	}
 
 	// 等于1表示密码与用户匹配
 	fmt.Println("登录成功")
 
 	return
+}
+
+func SignOut(userId uint64) error {
+	// 从redis中删除JWTToken
+	if err := redis.DeleteJWTToken(userId); err != nil {
+		fmt.Println("从redis中删除JWTToken失败， 原因为：", err)
+		return err
+	}
+
+	fmt.Println("登出成功")
+	return nil
+}
+
+func UpdateToken(userId uint64, accessToken string, refreshToken string) error {
+	// 更新redis中的JWTToken
+	if err := redis.StoreJWTToken(userId, accessToken, refreshToken); err != nil {
+		fmt.Println("从redis中更新JWTToken失败， 原因为：", err)
+		return err
+	}
+
+	fmt.Println("更新JWTToken成功")
+	return nil
 }

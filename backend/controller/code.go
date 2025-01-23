@@ -14,6 +14,7 @@ const (
 	InvalidToken     MyCode = 1008
 	NotLogin         MyCode = 1009
 	VoteRepated      MyCode = 1010
+	DeletePostFaild  MyCode = 1011
 )
 
 var msgFlags = map[MyCode]string{
@@ -28,6 +29,7 @@ var msgFlags = map[MyCode]string{
 	InvalidToken:     "无效的token",
 	NotLogin:         "未登录",
 	VoteRepated:      "重复投相同的票",
+	DeletePostFaild:  "删除帖子失败",
 }
 
 func (c MyCode) Msg() string {

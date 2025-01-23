@@ -5,6 +5,7 @@ import (
 	"bluebell/dao/redis"
 	"bluebell/models"
 	"bluebell/pkg/snowflake"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -195,4 +196,61 @@ func checkAndStoreVotes() {
 			continue
 		}
 	}
+}
+
+func DeletePost(postId uint64, userId uint64) error {
+	// 为了防止操作前已经删除了，先查询帖子是否存在
+	isExist, err := redis.CheckPostIsExist(postId)
+	if err != nil {
+		// 查询帖子失败
+		fmt.Println("查询帖子失败, 错误码是: ", err)
+		return err
+	}
+
+	if !isExist {
+		fmt.Println("帖子不存在")
+		return errors.New("帖子不存在")
+	}
+
+	// 帖子存在，开始执行删除操作（mysql与redis都删）
+	if err = mysql.DeletePostById(postId); err != nil {
+		// 删除帖子失败
+		fmt.Println("删除帖子失败, 错误码是: ", err)
+		return err
+	}
+
+	// 删除成功
+	return nil
+}
+
+func UpdatePost(postId uint64, post models.PostContent, oldCommunityId uint64) error {
+	// 先查询post是否存在
+	isExist, err := redis.CheckPostIsExist(postId)
+
+	if err != nil {
+		// 查询帖子失败
+		fmt.Println("查询帖子失败, 错误码是: ", err)
+		return err
+	}
+
+	if !isExist {
+		// 帖子不存在
+		fmt.Println("帖子不存在")
+		return errors.New("帖子不存在")
+	}
+
+	// 帖子存在，开始执行更新操作（mysql与redis都更新）
+	if err = mysql.UpdatePostContent(postId, post); err != nil {
+		// 更新帖子失败
+		fmt.Println("更新帖子失败, 错误码是: ", err)
+		return err
+	}
+
+	if err = redis.UpdatePostContent(postId, post, oldCommunityId); err != nil {
+		// 更新缓存失败
+		fmt.Println("更新缓存失败, 错误码是: ", err)
+		return err
+	}
+
+	return nil
 }
